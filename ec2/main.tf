@@ -7,7 +7,7 @@ resource "aws_instance" "ec2" {
 
   tags = {
     Name = "Terraform-EC2-Instance-${count.index}",
-    environment = prod
+    environment = "prod"
   }
 
 }
