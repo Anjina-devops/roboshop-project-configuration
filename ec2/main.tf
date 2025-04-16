@@ -6,7 +6,8 @@ resource "aws_instance" "ec2" {
   #associate_public_ip_address = true
 
   tags = {
-    Name = "Terraform-EC2-Instance-${count.index}"
+    Name = "Terraform-EC2-Instance-${count.index}",
+    environment = prod
   }
 
 }
