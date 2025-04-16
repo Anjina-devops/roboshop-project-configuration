@@ -1,7 +1,7 @@
-resource "aws_instance" "EC2" {
+resource "aws_instance" "ec2" {
   count         = 5
   ami           = var.ami # centos 8
-  instance_type = var.instance_type
+  instance_type = "t2.micro"
   #subnet_id     = aws_subnet.public_subnet.id
   #associate_public_ip_address = true
 
