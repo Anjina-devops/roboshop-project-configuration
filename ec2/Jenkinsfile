@@ -9,8 +9,7 @@ pipeline {
 
                 // List files for debugging
                 sh '''
-                    ls -ltr
-                    pwd
+                    ls -l
                     cd ec2
                     ls -l
                 '''
