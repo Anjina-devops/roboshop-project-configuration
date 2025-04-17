@@ -4,9 +4,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from your repository
+                // Checkout the code from the repository
                 git 'https://github.com/Anjina-devops/roboshop-project-configuration.git'
 
+                // List files for debugging
                 sh '''
                     ls -ltr
                     pwd
@@ -18,75 +19,63 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                // Initialize Terraform yhrough jenkins pipeline
                 echo 'Initializing Terraform...'
-                sh '''
-                cd ec2
-                terraform init
-                '''
+                dir('ec2') {
+                    sh 'terraform init'
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                // Plan the infrastructure through Jenkins pipeline
-                sh '''
-                cd ec2
-                terraform plan
-                '''
-                /* dir('ec2') {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-auth']]) {
-                        sh 'terraform plan'
-                    } */
+                echo 'Planning Terraform changes...'
+                dir('ec2') {
+                    sh 'terraform plan'
                 }
             }
         }
 
-        stage('Approval') {
+        stage('Terraform Apply Approval') {
             steps {
-                // Wait for manual approval before applying changes
                 script {
-                    def userInput = input(
-                        id: 'userInput', // Unique id for the input step
+                    def applyApproval = input(
+                        id: 'userInputApply',
                         message: 'Do you want to apply the Terraform plan?',
                         parameters: [
                             [$class: 'BooleanParameterDefinition', name: 'Approve', defaultValue: true]
                         ]
                     )
-                }
-            }
-        }
 
-        stage('Terraform Apply') {
-            steps {
-                dir('ec2') {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-auth']]) {
-                        sh 'terraform apply -auto-approve'
+                    if (applyApproval == true) {
+                        echo 'User approved Terraform apply.'
+                        dir('ec2') {
+                            sh 'terraform apply -auto-approve'
+                        }
+                    } else {
+                        echo 'Terraform apply skipped by user.'
                     }
                 }
             }
         }
 
-        stage('Destroy?') {
+        stage('Terraform Destroy Approval') {
             steps {
-                // Wait for manual approval before applying changes
                 script {
-                    def userInput = input(
-                        id: 'userInput', // Unique id for the input step
-                        message: 'Do you want to Destroy the Terraform plan?',
+                    def destroyApproval = input(
+                        id: 'userInputDestroy',
+                        message: 'Do you want to destroy the infrastructure?',
                         parameters: [
-                            [$class: 'BooleanParameterDefinition', name: 'Approve', defaultValue: true]
+                            [$class: 'BooleanParameterDefinition', name: 'Approve', defaultValue: false]
                         ]
                     )
-                }
-            }
-        }
 
-        stage('Terraform Destroy') {
-            steps {
-                dir('ec2') {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-auth']]) {
-                        sh 'terraform destroy -auto-approve'
+                    if (destroyApproval == true) {
+                        echo 'User approved Terraform destroy.'
+                        dir('ec2') {
+                            sh 'terraform destroy -auto-approve'
+                        }
+                    } else {
+                        echo 'Terraform destroy skipped by user.'
                     }
                 }
             }
@@ -95,9 +84,10 @@ pipeline {
 
     post {
         success {
-            echo 'Terraform apply was successful!'
+            echo 'Pipeline completed successfully.'
         }
         failure {
-            echo 'Terraform apply failed.'
+            echo 'Pipeline failed.'
         }
     }
+}
