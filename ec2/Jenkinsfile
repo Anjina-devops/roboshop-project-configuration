@@ -29,10 +29,15 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                dir('ec2') {
+                // Plan the infrastructure through Jenkins pipeline
+                sh '''
+                cd ec2
+                terraform plan
+                '''
+                /* dir('ec2') {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-auth']]) {
                         sh 'terraform plan'
-                    }
+                    } */
                 }
             }
         }
